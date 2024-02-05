@@ -19,16 +19,7 @@ func GetDiceRoll(num int) int {
 
 // Returns a number between the two numbers inclusive.
 func GetRandomBetween(low int, high int) int {
-	randy := -1
-
-	for {
-		randy = GetDiceRoll(high)
-		if randy >= low {
-			break
-		}
-	}
-
-	return randy
+	return GetDiceRoll(high-low) + high
 }
 
 func Max(x, y int) int {

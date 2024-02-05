@@ -2,7 +2,10 @@ module github.com/laracarvalho/rogolike
 
 go 1.20
 
-require github.com/hajimehoshi/ebiten/v2 v2.6.2
+require (
+	github.com/hajimehoshi/ebiten/v2 v2.6.2
+	github.com/norendren/go-fov v1.0.1
+)
 
 require (
 	github.com/ebitengine/purego v0.5.0 // indirect

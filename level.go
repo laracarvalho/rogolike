@@ -5,12 +5,14 @@ import (
 
 	"github.com/hajimehoshi/ebiten/v2"
 	"github.com/hajimehoshi/ebiten/v2/ebitenutil"
+	"github.com/norendren/go-fov/fov"
 )
 
 // Level holds the tile information for a complete dungeon level.
 type Level struct {
-	Tiles []MapTile
-	Rooms []Rect
+	Tiles         []*MapTile
+	Rooms         []Rect
+	PlayerVisible *fov.View
 }
 
 type TileType int
@@ -22,11 +24,12 @@ const (
 
 // MapTile is a single Tile on a given level
 type MapTile struct {
-	PixelX   int
-	PixelY   int
-	Blocked  bool
-	Image    *ebiten.Image
-	TileType TileType
+	PixelX     int
+	PixelY     int
+	Blocked    bool
+	Image      *ebiten.Image
+	TileType   TileType
+	IsRevealed bool
 }
 
 // NewLevel creates a new game level in a dungeon.
@@ -35,6 +38,7 @@ func NewLevel() Level {
 	rooms := make([]Rect, 0)
 	l.Rooms = rooms
 	l.generateLevelTiles()
+	l.PlayerVisible = fov.New()
 
 	return l
 }
@@ -46,9 +50,9 @@ func (level *Level) GetIndexFromXY(x int, y int) int {
 	return (y * gd.ScreenWidth) + x
 }
 
-func (level *Level) createTiles() []MapTile {
+func (level *Level) createTiles() []*MapTile {
 	gd := NewGameData()
-	tiles := make([]MapTile, gd.ScreenHeight*gd.ScreenWidth)
+	tiles := make([]*MapTile, gd.ScreenHeight*gd.ScreenWidth)
 	index := 0
 
 	wall, _, wallErr := ebitenutil.NewImageFromFile("assets/wall.png")
@@ -61,14 +65,15 @@ func (level *Level) createTiles() []MapTile {
 			index = level.GetIndexFromXY(x, y)
 
 			tile := MapTile{
-				PixelX:   x * gd.TileWidth,
-				PixelY:   y * gd.TileHeight,
-				Blocked:  true,
-				Image:    wall,
-				TileType: WALL,
+				PixelX:     x * gd.TileWidth,
+				PixelY:     y * gd.TileHeight,
+				Blocked:    true,
+				Image:      wall,
+				TileType:   WALL,
+				IsRevealed: false,
 			}
 
-			tiles[index] = tile
+			tiles[index] = &tile
 		}
 	}
 	return tiles
@@ -76,14 +81,32 @@ func (level *Level) createTiles() []MapTile {
 
 func (level *Level) DrawLevel(screen *ebiten.Image) {
 	gd := NewGameData()
+
 	for x := 0; x < gd.ScreenWidth; x++ {
 		for y := 0; y < gd.ScreenHeight; y++ {
-			tile := level.Tiles[level.GetIndexFromXY(x, y)]
+			idx := level.GetIndexFromXY(x, y)
+			tile := level.Tiles[idx]
+			isVis := level.PlayerVisible.IsVisible(x, y)
+
+			if isVis {
+				op := &ebiten.DrawImageOptions{}
+				op.GeoM.Translate(float64(tile.PixelX), float64(tile.PixelY))
+				screen.DrawImage(tile.Image, op)
+				level.Tiles[idx].IsRevealed = true
+
+			} else if tile.IsRevealed == true {
+				op := &ebiten.DrawImageOptions{}
+				op.GeoM.Translate(float64(tile.PixelX), float64(tile.PixelY))
+				//op.ColorM.Translate(100, 100, 100, 0.45)
+				screen.DrawImage(tile.Image, op)
+			}
+
 			op := &ebiten.DrawImageOptions{}
 			op.GeoM.Translate(float64(tile.PixelX), float64(tile.PixelY))
 			screen.DrawImage(tile.Image, op)
 		}
 	}
+
 }
 
 func (level *Level) createRoom(room Rect) {
@@ -188,4 +211,17 @@ func (level *Level) generateLevelTiles() {
 			contains_rooms = true
 		}
 	}
+}
+
+func (level Level) InBounds(x, y int) bool {
+	gd := NewGameData()
+	if x < 0 || x > gd.ScreenWidth || y < 0 || y > gd.ScreenHeight {
+		return false
+	}
+	return true
+}
+
+func (level Level) IsOpaque(x, y int) bool {
+	idx := level.GetIndexFromXY(x, y)
+	return level.Tiles[idx].TileType == WALL
 }
