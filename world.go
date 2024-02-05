@@ -14,6 +14,7 @@ var health *ecs.Component
 var meleeWeapon *ecs.Component
 var armor *ecs.Component
 var name *ecs.Component
+var userMessage *ecs.Component
 
 func InitializeWorld(startLevel Level) (*ecs.Engine, map[string]ecs.Tag) {
 	tags := make(map[string]ecs.Tag)
@@ -28,6 +29,7 @@ func InitializeWorld(startLevel Level) (*ecs.Engine, map[string]ecs.Tag) {
 	meleeWeapon = engine.NewComponent()
 	armor = engine.NewComponent()
 	name = engine.NewComponent()
+	userMessage = engine.NewComponent()
 
 	startRoom := startLevel.Rooms[0]
 	x, y := startRoom.Center()
@@ -67,7 +69,12 @@ func InitializeWorld(startLevel Level) (*ecs.Engine, map[string]ecs.Tag) {
 			Defense:    1,
 			ArmorClass: 1,
 		}).
-		AddComponent(name, &Name{Label: "Player"})
+		AddComponent(name, &Name{Label: "Player"}).
+		AddComponent(userMessage, &UserMessage{
+			AttackMessage:    "",
+			DeadMessage:      "",
+			GameStateMessage: "",
+		})
 
 	for _, room := range startLevel.Rooms {
 		if room.X != startRoom.X {
@@ -96,18 +103,26 @@ func InitializeWorld(startLevel Level) (*ecs.Engine, map[string]ecs.Tag) {
 					Defense:    3,
 					ArmorClass: 4,
 				}).
-				AddComponent(name, &Name{Label: "Skeleton"})
+				AddComponent(name, &Name{Label: "Skeleton"}).
+				AddComponent(userMessage, &UserMessage{
+					AttackMessage:    "",
+					DeadMessage:      "",
+					GameStateMessage: "",
+				})
 		}
 	}
 
-	players := ecs.BuildTag(player, position, health, meleeWeapon, armor, name)
+	players := ecs.BuildTag(player, position, health, meleeWeapon, armor, name, userMessage)
 	tags["players"] = players
 
 	renderables := ecs.BuildTag(renderable, position)
 	tags["renderables"] = renderables
 
-	monsters := ecs.BuildTag(monster, position, health, meleeWeapon, armor, name)
+	monsters := ecs.BuildTag(monster, position, health, meleeWeapon, armor, name, userMessage)
 	tags["monsters"] = monsters
+
+	messengers := ecs.BuildTag(userMessage)
+	tags["messengers"] = messengers
 
 	return engine, tags
 }

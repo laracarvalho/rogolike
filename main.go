@@ -51,6 +51,7 @@ func (g *Game) Draw(screen *ebiten.Image) {
 	level.DrawLevel(screen)
 
 	ProcessRenderables(g, level, screen)
+	ProcessUserLog(g, screen)
 }
 
 // Layout will return the screen dimensions.

@@ -48,6 +48,9 @@ func AttackSystem(g *Game, attackerPosition *Position, defenderPosition *Positio
 	attackerWeapon := attacker.Components[meleeWeapon].(*MeleeWeapon)
 	attackerName := attacker.Components[name].(*Name).Label
 
+	defenderMessage := defender.Components[userMessage].(*UserMessage)
+	attackerMessage := attacker.Components[userMessage].(*UserMessage)
+
 	//Roll a d10 to hit
 	toHitRoll := GetDiceRoll(10)
 
@@ -61,18 +64,18 @@ func AttackSystem(g *Game, attackerPosition *Position, defenderPosition *Positio
 			damageDone = 0
 		}
 		defenderHealth.CurrentHealth -= damageDone
-		fmt.Printf("%s swings %s at %s and hits for %d health.\n", attackerName, attackerWeapon.Name, defenderName, damageDone)
+		attackerMessage.AttackMessage = fmt.Sprintf("%s swings %s at %s and hits for %d health.\n", attackerName, attackerWeapon.Name, defenderName, damageDone)
 
 		if defenderHealth.CurrentHealth <= 0 {
-			fmt.Printf("%s has died!\n", defenderName)
+			defenderMessage.DeadMessage = fmt.Sprintf("%s has died!\n", defenderName)
+
 			if defenderName == "Player" {
-				fmt.Printf("Game Over!\n")
+				defenderMessage.GameStateMessage = "Game Over!\n"
 				g.Turn = GameOver
 			}
-			g.World.DisposeEntity(defender.Entity)
 		}
 
 	} else {
-		fmt.Printf("%s swings %s at %s and misses.\n", attackerName, attackerWeapon.Name, defenderName)
+		attackerMessage.AttackMessage = fmt.Sprintf("%s swings %s at %s and misses.\n", attackerName, attackerWeapon.Name, defenderName)
 	}
 }

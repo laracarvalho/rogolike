@@ -43,6 +43,12 @@ type Armor struct {
 	ArmorClass int
 }
 
+type UserMessage struct {
+	AttackMessage    string
+	DeadMessage      string
+	GameStateMessage string
+}
+
 func (p *Position) GetManhattanDistance(other *Position) int {
 	xDist := math.Abs(float64(p.X - other.X))
 	yDist := math.Abs(float64(p.Y - other.Y))
