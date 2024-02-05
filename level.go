@@ -37,7 +37,7 @@ func NewLevel() Level {
 	l := Level{}
 	rooms := make([]Rect, 0)
 	l.Rooms = rooms
-	l.generateLevelTiles()
+	l.GenerateLevelTiles()
 	l.PlayerVisible = fov.New()
 
 	return l
@@ -161,7 +161,7 @@ func (level *Level) createVerticalTunnel(y1 int, y2 int, x int) {
 	}
 }
 
-func (level *Level) generateLevelTiles() {
+func (level *Level) GenerateLevelTiles() {
 	MIN_SIZE := 6
 	MAX_SIZE := 10
 	MAX_ROOMS := 30
@@ -174,9 +174,8 @@ func (level *Level) generateLevelTiles() {
 	for idx := 0; idx < MAX_ROOMS; idx++ {
 		w := GetRandomBetween(MIN_SIZE, MAX_SIZE)
 		h := GetRandomBetween(MIN_SIZE, MAX_SIZE)
-		x := GetRandomBetween(0, gd.ScreenWidth-w-1)
-		y := GetRandomBetween(0, gd.ScreenHeight-h-1)
-		room := NewRect(x, y, w, h)
+		x := GetDiceRoll(gd.ScreenWidth - w - 1)
+		y := GetDiceRoll(gd.ScreenHeight - h - 1)
 
 		new_room := NewRect(x, y, w, h)
 		okToAdd := true
@@ -207,7 +206,7 @@ func (level *Level) generateLevelTiles() {
 				}
 			}
 
-			level.Rooms = append(level.Rooms, room)
+			level.Rooms = append(level.Rooms, new_room)
 			contains_rooms = true
 		}
 	}
